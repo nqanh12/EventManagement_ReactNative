@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import LoginScreen from './login';
-import HomeScreen from './homepage';
-import RegisterScreen from './signup';
-import EventsScreen from './event_list';
-import HistoryScreen from './history';
-import NotificationScreen from './notification';
+import Login from './login';
+import Home from './homepage';
+import Register from './signup';
+import Events from './event_list';
+import History from './history';
+import Notification from './notification';
 import ChoseEventCheck from './chose_event_check';
+import EventDetails from './event_detail';
 
 const Stack = createNativeStackNavigator();
 
@@ -15,14 +16,14 @@ function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen  name="Login" component={LoginScreen} options={ {headerShown:false}} />
-        <Stack.Screen name="Home" component={HomeScreen} options={ {headerShown:false}} />
-        <Stack.Screen name="Signup" component={RegisterScreen} options={ {headerShown:false}}/>
-        <Stack.Screen name="EventList" component={EventsScreen} options={{headerShown:false}} />
-        <Stack.Screen name="History" component={HistoryScreen} options={{headerShown:false}} />
-        <Stack.Screen name="Notification" component={NotificationScreen} options={{headerShown:false}} />
+        <Stack.Screen  name="Login" component={Login} options={ {headerShown:false}} />
+        <Stack.Screen name="Home" component={Home} options={ {headerShown:false}} />
+        <Stack.Screen name="Signup" component={Register} options={ {headerShown:false}}/>
+        <Stack.Screen name="EventList" component={Events} options={{headerShown:false}} />
+        <Stack.Screen name="History" component={History} options={{headerShown:false}} />
+        <Stack.Screen name="Notification" component={Notification} options={{headerShown:false}} />
         <Stack.Screen name="ChoseEvent" component={ChoseEventCheck} options={{headerShown:false}} />
-        {/* <Stack.Screen name='ScanQR' component={ScanQRCodeScreen} options={{headerShown:false}} /> */}
+        <Stack.Screen name="EventDetails" component={EventDetails} options={{headerShown:false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );
