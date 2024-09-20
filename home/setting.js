@@ -15,12 +15,12 @@ const settingsOptions = [
   {
     title: 'Thay đổi mật khẩu',
     icon: require('./assets/lock.png'),
-    screen: 'ChangePasswordScreen', // Add your navigation route name here
+    screen: 'ChangePassword', // Add your navigation route name here
   },
   {
     title: 'Cập nhật thông tin cá nhân',
     icon: require('./assets/person.png'),
-    screen: 'UpdatePersonalInfoScreen', // Add your navigation route name here
+    screen: 'ModifyProfile', // Add your navigation route name here
   },
   {
     title: 'Cài đặt ngôn ngữ',
