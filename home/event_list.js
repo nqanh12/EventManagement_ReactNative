@@ -31,7 +31,7 @@ const EventListScreen = ({ navigation }) => {
 
   useEffect(() => {
     loadMoreEvents(); // Load initial events
-  }, [loadMoreEvents]);
+  }, []);
 
   const getFormattedDate = (index) => {
     const now = new Date();

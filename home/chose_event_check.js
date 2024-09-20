@@ -8,14 +8,12 @@ import {
   StyleSheet,
   Image,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import LinearGradient from 'react-native-linear-gradient';
 
 const ChoseEventCheck = ({ navigation }) => {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState('Tất cả');
 
   const loadMoreEvents = useCallback(() => {
     const newEvents = Array.from({ length: 10 }, (_, index) => ({
@@ -31,7 +29,7 @@ const ChoseEventCheck = ({ navigation }) => {
 
   useEffect(() => {
     loadMoreEvents(); // Load initial events
-  }, [loadMoreEvents]);
+  }, []);
 
   const getFormattedDate = (index) => {
     const now = new Date();
@@ -49,11 +47,6 @@ const ChoseEventCheck = ({ navigation }) => {
     } else {
       setFilteredEvents(events);
     }
-  };
-
-  const handleFilter = (value) => {
-    setFilter(value);
-    // Add your filter logic here if needed
   };
 
   const renderEventCard = ({ item }) => (
@@ -106,20 +99,6 @@ const ChoseEventCheck = ({ navigation }) => {
         />
 
         {/* Picker for filtering */}
-        <View style={styles.filterContainer}>
-          <Text style={styles.filterLabel}>Lọc: </Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={filter}
-              onValueChange={(itemValue) => handleFilter(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Tất cả" value="Tất cả" />
-              <Picker.Item label="Sắp tới" value="Sắp tới" />
-              <Picker.Item label="Đã qua" value="Đã qua" />
-            </Picker>
-          </View>
-        </View>
 
         <FlatList
           data={filteredEvents}
