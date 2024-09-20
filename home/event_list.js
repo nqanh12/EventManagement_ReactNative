@@ -22,7 +22,12 @@ const EventListScreen = ({ navigation }) => {
       id: events.length + index,
       name: `Event ${events.length + index}`,
       startDate: getFormattedDate(events.length + index),
+      endDate: getFormattedDate(events.length + index + 1),
+      location: `Địa điểm: ${events.length + index}`,
       description: `Mô tả cho sự kiện ${events.length + index}`,
+      checkInStatus: Math.random() < 0.5,
+      checkOutStatus: Math.random() < 0.5,
+      managerId: Math.floor(Math.random() * 1000),
     }));
 
     setEvents((prevEvents) => [...prevEvents, ...newEvents]);
@@ -30,7 +35,7 @@ const EventListScreen = ({ navigation }) => {
   }, [events.length]);
 
   useEffect(() => {
-    loadMoreEvents(); // Load initial events
+    loadMoreEvents();
   }, []);
 
   const getFormattedDate = (index) => {
@@ -59,23 +64,26 @@ const EventListScreen = ({ navigation }) => {
   const renderEventCard = ({ item }) => (
     <TouchableOpacity
       style={styles.eventCard}
-      onPress={() =>
-        navigation.navigate('EventDetails', {
-          name: item.name,
-          startDate: item.startDate,
-          description: item.description,
-        })
+      onPress={() =>null
       }
     >
       <View style={styles.eventDetailsContainer}>
-        {/* Event Details on the Left */}
         <View style={styles.eventInfo}>
           <Text style={styles.eventTitle}>{item.name}</Text>
           <Text style={styles.eventDate}>Ngày bắt đầu: {item.startDate}</Text>
         </View>
 
-        {/* Icon on the Right */}
-        <TouchableOpacity onPress={() => navigation.navigate('EventDetails', { id: item.id })}>
+        <TouchableOpacity onPress={() => navigation.navigate('EventDetails', {
+                    id: item.id,
+                    name: item.name,
+                    dateStart: item.startDate,
+                    dateEnd: item.endDate,
+                    location: item.location,
+                    checkInStatus: item.checkInStatus,
+                    checkOutStatus: item.checkOutStatus,
+                    description: item.description,
+                    managerId: item.managerId,
+                  })}>
           <Image
             source={require('./assets/detail_icon.png')} // Thay đổi với icon của bạn
             style={styles.detailIcon}
@@ -105,7 +113,6 @@ const EventListScreen = ({ navigation }) => {
           onChangeText={handleSearch}
         />
 
-        {/* Picker for filtering */}
         <View style={styles.filterContainer}>
           <Text style={styles.filterLabel}>Lọc: </Text>
           <View style={styles.pickerWrapper}>
@@ -123,7 +130,7 @@ const EventListScreen = ({ navigation }) => {
 
         <FlatList
           data={filteredEvents}
-          renderItem={renderEventCard} // Ensure you pass the render function correctly
+          renderItem={renderEventCard}
           keyExtractor={(item) => item.id.toString()}
           onEndReached={loadMoreEvents}
           onEndReachedThreshold={0.5}
@@ -143,7 +150,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 16,
-    backgroundColor: '#1975D7', // Adding a gradient to the header could be considered
+    backgroundColor: '#1975D7',
     elevation: 5,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -152,15 +159,15 @@ const styles = StyleSheet.create({
   icon_back: {
     width: 30,
     height: 30,
-    tintColor: '#fff', // Make the back icon white for contrast
+    tintColor: '#fff',
   },
   title: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff', // White title for contrast against a darker background
+    color: '#fff',
     textAlign: 'center',
     flex: 1,
-    marginEnd: 30, // Ensures the title is centered
+    marginEnd: 30,
   },
   sub_container: {
     flex: 1,
@@ -177,7 +184,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
-    flexDirection: 'row', // Added for inline icon
+    flexDirection: 'row',
     alignItems: 'center',
   },
   filterContainer: {
@@ -204,44 +211,37 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%',
   },
-  eventList: {
-    flexGrow: 1,
-  },
   eventCard: {
     backgroundColor: '#fff',
-    padding: 20, // Increased padding for better spacing
-    borderRadius: 15, // More rounded edges
+    padding: 20,
+    borderRadius: 15,
     marginBottom: 15,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
-    // Optional gradient background:
   },
   eventTitle: {
-    fontSize: 20, // Slightly increased font size
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1975D7', // Accent color for event name
+    color: '#1975D7',
   },
   eventDate: {
     fontSize: 14,
-    color: '#888', // Lighter color for date to contrast with the title
+    color: '#888',
   },
-
-  // Design Event List Card
-
   eventDetailsContainer: {
-    flexDirection: 'row', // Đặt chi tiết và icon theo chiều ngang
-    justifyContent: 'space-between', // Đẩy icon sang bên phải
-    alignItems: 'center', // Căn giữa icon và thông tin
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   eventInfo: {
-    flex: 1, // Để thông tin sự kiện chiếm toàn bộ bên trái
+    flex: 1,
   },
   detailIcon: {
     width: 80,
     height: 80,
-    tintColor: '#1975D7', // Màu của icon, bạn có thể tùy chỉnh
+    tintColor: '#1975D7',
   },
 });
 
