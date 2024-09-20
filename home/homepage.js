@@ -67,7 +67,7 @@ function HomeScreen({ navigation }) {
             <Button name="Điểm danh" icon={require('./assets/checkin-icon.png')} handle="ChoseEvent" navigation={navigation} />
             <Button name="Lịch sử" icon={require('./assets/statistics-icon.png')} handle="History" navigation={navigation} />
             <Button name="Thông báo" icon={require('./assets/notification-icon.png')} handle="Notification" navigation={navigation} />
-            <Button name="Cài đặt" icon={require('./assets/settings-icon.png')} handle="SettingsScreen" navigation={navigation} />
+            <Button name="Cài đặt" icon={require('./assets/settings-icon.png')} handle="Setting" navigation={navigation} />
           </View>
 
           {/* Status Section */}
