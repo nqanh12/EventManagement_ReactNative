@@ -3,13 +3,13 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Login from './login';
 import Home from './homepage';
-import Register from './signup';
+import Register from '../signup';
 import Events from './event_list';
 import History from './history';
 import Notification from './notification';
 import ChoseEventCheck from './chose_event_check';
 import EventDetails from './event_detail';
-import Setting from './setting';
+import Setting from '../setting';
 import ChangePassword from './change_password';
 import ModifyProfile from './modify_profile';
 
