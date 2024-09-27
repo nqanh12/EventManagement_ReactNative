@@ -9,19 +9,19 @@ import {
   ScrollView,
 } from 'react-native';
 
-const UpdatePersonalScreen = ({navigation}) => {
+const ModifyProfileScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {/* Background Image */}
       <ImageBackground
         source={require('./assets/background.png')} // Replace with your image
         style={styles.backgroundImage}>
-          <View style={styles.container_header}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Image source={require('./assets/back_page.png')} style={styles.icon_back} />
-              </TouchableOpacity>
-              <Text style={styles.title}>Hồ sơ</Text>
-          </View>
+        <View style={styles.container_header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Image source={require('./assets/back_page.png')} style={styles.icon_back} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Hồ sơ</Text>
+        </View>
         <View style={styles.overlay}>
           <View style={styles.headerContainer}>
             {/* Profile Picture */}
@@ -36,11 +36,13 @@ const UpdatePersonalScreen = ({navigation}) => {
           {/* Info Section */}
           <ScrollView style={styles.infoContainer}>
             {renderInfoRow('Giới tính', 'Nam')}
-            {renderInfoRow('Ngày sinh', '12/05/2003')}
             {renderInfoRow('Điện thoại', '+84 98 728 46 71')}
-
+            {renderInfoRow('Ngày sinh', '12/05/2003')}
+            {renderInfoRow('Lớp', '12DHTH06')}
+            {renderInfoRow('Email', 'chaybon@gmail.com')}
+            {renderInfoRow('Địa chỉ', '566/197/25 Nguyễn Thái Sơn')}
             {/* Edit Button */}
-            <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('UpdateModifile')}>
               <Text style={styles.editButtonText}>Chỉnh sửa</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -50,12 +52,19 @@ const UpdatePersonalScreen = ({navigation}) => {
   );
 };
 
+const truncateString = (str, num) => {
+  if (str.length <= num) {
+    return str;
+  }
+  return str.slice(0, num) + '...';
+};
+
 // Helper function to render an info row
 const renderInfoRow = (label, value) => {
   return (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+      <Text style={styles.infoValue}>{truncateString(value, 20)}</Text>
     </View>
   );
 };
@@ -153,4 +162,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UpdatePersonalScreen;
+export default ModifyProfileScreen;

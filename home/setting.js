@@ -20,7 +20,7 @@ const settingsOptions = [
   {
     title: 'Cập nhật thông tin cá nhân',
     icon: require('./assets/person.png'),
-    screen: 'ModifyProfile', // Add your navigation route name here
+    screen: 'ModifilePersonal', // Add your navigation route name here
   },
   {
     title: 'Cài đặt ngôn ngữ',
