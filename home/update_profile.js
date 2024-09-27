@@ -1,27 +1,31 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ImageBackground,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Image, ImageBackground, StyleSheet, ScrollView } from 'react-native';
 
-const ModifyProfileScreen = ({ navigation }) => {
+const UpdateModifile = ({ navigation }) => {
+  const [name, setName] = useState('Nguyễn QuốcAnh');
+  const [gender, setGender] = useState('Nam');
+  const [dob, setDob] = useState('12/05/2003');
+  const [phone, setPhone] = useState('+84 98 728 46 71');
+  const [email, setEmail] = useState('chaybon894@gmail.com');
+  const [address, setAddress] = useState('566/197/25 Nguyễn Thái Sơn');
+  const [class_id, setClass] = useState('12DHTH06');
+
+
+
   return (
     <View style={styles.container}>
       {/* Background Image */}
       <ImageBackground
         source={require('./assets/background.png')} // Replace with your image
-        style={styles.backgroundImage}>
+        style={styles.backgroundImage}
+      >
         <View style={styles.container_header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Image source={require('./assets/back_page.png')} style={styles.icon_back} />
           </TouchableOpacity>
-          <Text style={styles.title}>Hồ sơ</Text>
+          <Text style={styles.title}>Chỉnh sửa hồ sơ</Text>
         </View>
+
         <View style={styles.overlay}>
           <View style={styles.headerContainer}>
             {/* Profile Picture */}
@@ -29,21 +33,22 @@ const ModifyProfileScreen = ({ navigation }) => {
               source={require('./assets/profile-icon.png')} // Replace with your avatar image
               style={styles.avatar}
             />
-            <Text style={styles.name}>Nguyễn QuốcAnh</Text>
-            <Text style={styles.subtitle}>Thông tin cá nhân</Text>
           </View>
 
           {/* Info Section */}
           <ScrollView style={styles.infoContainer}>
-            {renderInfoRow('Giới tính', 'Nam')}
-            {renderInfoRow('Điện thoại', '+84 98 728 46 71')}
-            {renderInfoRow('Ngày sinh', '12/05/2003')}
-            {renderInfoRow('Lớp', '12DHTH06')}
-            {renderInfoRow('Email', 'chaybon@gmail.com')}
-            {renderInfoRow('Địa chỉ', '566/197/25 Nguyễn Thái Sơn')}
-            {/* Edit Button */}
-            <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('UpdateModifile')}>
-              <Text style={styles.editButtonText}>Chỉnh sửa</Text>
+            {renderInputField('Tên', name, setName)}
+            {renderInputField('Giới tính', gender, setGender)}
+            {renderInputField('Lớp', class_id, setClass)}
+            {renderInputField('Ngày sinh', dob, setDob)}
+            {renderInputField('Điện thoại', phone, setPhone)}
+            {renderInputField('Email', email, setEmail)}
+            {renderInputField('Địa chỉ', address, setAddress)}
+
+
+            {/* Save Button */}
+            <TouchableOpacity style={styles.saveButton} onPress={() => { /* Handle save logic */ }}>
+              <Text style={styles.saveButtonText}>Lưu thay đổi</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -52,19 +57,16 @@ const ModifyProfileScreen = ({ navigation }) => {
   );
 };
 
-const truncateString = (str, num) => {
-  if (str.length <= num) {
-    return str;
-  }
-  return str.slice(0, num) + '...';
-};
-
-// Helper function to render an info row
-const renderInfoRow = (label, value) => {
+// Helper function to render an input field
+const renderInputField = (label, value, setValue) => {
   return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{truncateString(value, 20)}</Text>
+    <View style={styles.inputContainer}>
+      <Text style={styles.inputLabel}>{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={setValue}
+        style={styles.input}
+      />
     </View>
   );
 };
@@ -102,12 +104,12 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dark overlay on the background image
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     paddingTop: 50,
   },
   headerContainer: {
     alignItems: 'center',
-    marginBottom: 50,
+    marginBottom: 30,
   },
   avatar: {
     width: 80,
@@ -115,16 +117,6 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     borderWidth: 2,
     borderColor: 'white',
-  },
-  name: {
-    marginTop: 10,
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  subtitle: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 16,
   },
   infoContainer: {
     flex: 1,
@@ -134,32 +126,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 30,
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
+  inputContainer: {
+    marginBottom: 10,
   },
-  infoLabel: {
+  inputLabel: {
     fontSize: 16,
     color: 'black',
+    marginBottom: 5,
   },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'black',
+  input: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 0,
   },
-  editButton: {
+  saveButton: {
     marginTop: 30,
     alignItems: 'center',
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#007BFF',
     paddingVertical: 15,
     borderRadius: 25,
   },
-  editButtonText: {
+  saveButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#007BFF',
+    color: 'white',
   },
 });
 
-export default ModifyProfileScreen;
+export default UpdateModifile;

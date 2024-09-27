@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 
 const EventDetailsScreen = ({ route }) => {
-  const {id, name, dateStart, dateEnd, location, description, checkInStatus, checkOutStatus, managerId } = route.params;
+  const { name, dateStart, dateEnd, location, description, checkInStatus, checkOutStatus, managerId } = route.params;
   const navigation = useNavigation();
 
   return (
@@ -66,7 +66,7 @@ const EventDetailsScreen = ({ route }) => {
 
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={[styles.button, { backgroundColor: 'green' }]}>
+          <TouchableOpacity style={[styles.button, { backgroundColor: '#00ab34' }]}>
             <Text style={styles.buttonText}>Đăng ký</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.button, { backgroundColor: 'grey' }]} disabled>
@@ -126,11 +126,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   content: {
+    elevation: 10,
     padding: 16,
   },
   card: {
     borderRadius: 15,
-    elevation: 4,
+    elevation: 10,
     marginBottom: 20,
   },
   cardContent: {
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
   },
   descriptionCard: {
     borderRadius: 10,
-    elevation: 2,
+    elevation: 10,
     padding: 12,
     marginBottom: 20,
   },
@@ -188,15 +189,20 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 20,
   },
   button: {
-    paddingVertical: 12,
+    paddingVertical: 18,
     paddingHorizontal: 32,
     borderRadius: 10,
+    elevation: 10,
+    shadowColor: 'black',
+    shadowOpacity: 0.1,
   },
   buttonText: {
     color: 'white',
-    fontSize: 12,
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 });
 

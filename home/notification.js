@@ -158,12 +158,6 @@ const NotificationScreen = ({ navigation }) => {
             >
               <Text>Xóa thông báo</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalOption}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text>Hủy</Text>
-            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>

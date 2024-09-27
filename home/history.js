@@ -157,10 +157,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     backgroundColor: '#1975D7',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
   },
   icon_back: {
     width: 30,
@@ -184,6 +180,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    elevation: 10,
     shadowColor: '#000',
     shadowOpacity: 0.5,
     shadowRadius: 5,
@@ -224,6 +221,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+    elevation: 5,
   },
   filterLabel: {
     fontSize: 16,
