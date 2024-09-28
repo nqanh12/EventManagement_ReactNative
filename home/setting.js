@@ -25,12 +25,12 @@ const settingsOptions = [
   {
     title: 'Cài đặt ngôn ngữ',
     icon: require('./assets/language.png'),
-    screen: 'LanguageSettingsScreen', // Add your navigation route name here
+    screen: 'LanguageSettings', // Add your navigation route name here
   },
   {
     title: 'Cài đặt thông báo',
     icon: require('./assets/notification_unactive.png'),
-    screen: 'NotificationSettingsScreen', // Add your navigation route name here
+    screen: 'NotificationSettings', // Add your navigation route name here
   },
   {
     title: 'Đăng xuất',
