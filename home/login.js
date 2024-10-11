@@ -10,7 +10,6 @@ import {
   SafeAreaView,
   TouchableHighlight,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons'; // Import an icon library
 
 const LoginScreen = ({ navigation }) => {
   const [userName, setUsername] = useState('');
@@ -80,10 +79,8 @@ const LoginScreen = ({ navigation }) => {
             value={password}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Icon
-              name={showPassword ? 'eye-off' : 'eye'}
-              size={24}
-              color="#888"
+            <Image
+              source={showPassword ? require('./assets/eye-off.png') : require('./assets/eye.png')}
               style={styles.eyeIcon}
             />
           </TouchableOpacity>
@@ -161,6 +158,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   eyeIcon: {
+    width: 24,
+    height: 24,
     marginLeft: 10,
   },
   button: {
