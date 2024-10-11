@@ -68,7 +68,7 @@ const ChoseEventCheck = ({ navigation }) => {
         </View>
 
         {/* Icon on the Right */}
-        <TouchableOpacity onPress={() => navigation.navigate('ScanQR', { id: item.id })}>
+        <TouchableOpacity onPress={() => navigation.navigate('QRCodeScannerScreen', { id: item.id })}>
           <Image
             source={require('./assets/scan_qr.png')} // Thay đổi với icon của bạn
             style={styles.iconscan}

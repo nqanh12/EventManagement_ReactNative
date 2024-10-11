@@ -15,6 +15,8 @@ import ModifilePersonal from './modify_profile';
 import UpdateModifile from './update_profile';
 import LanguageSettings from './language_setting';
 import NotificationSettings from './notification_setting';
+import QRCodeScannerScreen from './qrcode_scanner';
+import QRCodeScreen from './qrcode';
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -35,6 +37,8 @@ function App() {
         <Stack.Screen name="UpdateModifile" component={UpdateModifile} options={{headerShown:false}} />
         <Stack.Screen name="LanguageSettings" component={LanguageSettings} options={{headerShown:false}} />
         <Stack.Screen name="NotificationSettings" component={NotificationSettings} options={{headerShown:false}} />
+        <Stack.Screen name="QRCodeScannerScreen" component={QRCodeScannerScreen} options={{headerShown:false}} />
+        <Stack.Screen name="QRCodeScreen" component={QRCodeScreen} options={{headerShown:false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

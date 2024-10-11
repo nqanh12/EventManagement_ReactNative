@@ -74,8 +74,7 @@ const EventDetailsScreen = ({ route }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, { backgroundColor: 'blue' }]}
-            onPress={() => navigation.navigate('QRCodePage', { eventId: 'sv201930' })}
-          >
+            onPress={() => navigation.navigate('QRCodeScreen', { id: 'sv201930' })}>
             <Text style={styles.buttonText}>Lấy mã QR</Text>
           </TouchableOpacity>
         </View>

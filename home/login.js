@@ -10,17 +10,42 @@ import {
   SafeAreaView,
   TouchableHighlight,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons'; // Import an icon library
 
 const LoginScreen = ({ navigation }) => {
-  const [username, setUsername] = useState('');
+  const [userName, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); // State to toggle password visibility
 
-  const handleLogin = () => {
-    if (username === '' || password === '') {
-      Alert.alert('Lỗi', 'Vui lòng nhập tài khoản và mật khẩu.');
-    } else {
-      Alert.alert('Đăng nhập thành công', `Chào mừng ${username}!`);
-      navigation.navigate('Home');
+  const handleLogin = async () => {
+    const API_URL = 'http://10.0.2.2:8080/auth/login';
+    const payload = {
+      userName,
+      password,
+    };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('Đăng nhập thất bại');
+      }
+
+      const result = await response.json();
+      if (result.code === 1000) {
+        Alert.alert('Thông báo', 'Đăng nhập thành công');
+        navigation.navigate('Home', { token: result.result.token, role: result.result.role });
+      } else {
+        Alert.alert('Đăng nhập thất bại', 'Invalid credentials');
+      }
+    } catch (error) {
+      Alert.alert('Lỗi', error.message);
     }
   };
 
@@ -40,7 +65,7 @@ const LoginScreen = ({ navigation }) => {
             placeholder="Tài khoản"
             placeholderTextColor="#888"
             onChangeText={setUsername}
-            value={username}
+            value={userName}
           />
         </SafeAreaView>
 
@@ -50,10 +75,18 @@ const LoginScreen = ({ navigation }) => {
             style={styles.input}
             placeholder="Mật khẩu"
             placeholderTextColor="#888"
-            secureTextEntry
+            secureTextEntry={!showPassword} // Toggle visibility
             onChangeText={setPassword}
             value={password}
           />
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            <Icon
+              name={showPassword ? 'eye-off' : 'eye'}
+              size={24}
+              color="#888"
+              style={styles.eyeIcon}
+            />
+          </TouchableOpacity>
         </SafeAreaView>
 
         <TouchableHighlight style={styles.button} onPress={handleLogin} underlayColor="#000000">
@@ -126,6 +159,9 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     marginRight: 10,
+  },
+  eyeIcon: {
+    marginLeft: 10,
   },
   button: {
     backgroundColor: '#005cfb',

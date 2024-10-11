@@ -1,3 +1,4 @@
+import { useRoute } from '@react-navigation/native';
 import React from 'react';
 import {
   View,
@@ -34,6 +35,9 @@ function ListEvents() {
 }
 
 function HomeScreen({ navigation }) {
+  const route = useRoute();
+  const { token, role } = route.params;
+
   return (
     <LinearGradient
       colors={['#ADD8E6', '#005cfb']} // Light blue to deep blue gradient
@@ -64,7 +68,9 @@ function HomeScreen({ navigation }) {
         <View style={styles.sidebar}>
           <View style={styles.navButtons}>
             <Button name="Sự kiện" icon={require('./assets/event-icon.png')} handle="EventList" navigation={navigation} />
-            <Button name="Điểm danh" icon={require('./assets/checkin-icon.png')} handle="ChoseEvent" navigation={navigation} />
+            {role === '[MANAGER]' && (
+              <Button name="Điểm danh" icon={require('./assets/checkin-icon.png')} handle="ChoseEvent" navigation={navigation} />
+            )}
             <Button name="Lịch sử" icon={require('./assets/statistics-icon.png')} handle="History" navigation={navigation} />
             <Button name="Thông báo" icon={require('./assets/notification-icon.png')} handle="Notification" navigation={navigation} />
             <Button name="Cài đặt" icon={require('./assets/settings-icon.png')} handle="Setting" navigation={navigation} />
