@@ -7,7 +7,6 @@ import EventManagementScreen from './event_management';
 
 const Tab = createBottomTabNavigator();
 
-// Placeholder screens for user management, event management, etc.
 
 function EventListManagementScreen() {
   return (
@@ -33,7 +32,6 @@ function ExportReportScreen() {
 
 // Hàm xử lý đăng xuất
 const handleLogout = (navigation) => {
-  // Thực hiện các thao tác đăng xuất, ví dụ: xóa token, điều hướng đến màn hình đăng nhập
   Alert.alert(
     'Đăng xuất',
     'Bạn có chắc chắn muốn đăng xuất?',
@@ -42,8 +40,7 @@ const handleLogout = (navigation) => {
       {
         text: 'Đăng xuất',
         onPress: () => {
-          // Xóa token hoặc thực hiện các thao tác đăng xuất khác
-          // Điều hướng đến màn hình đăng nhập
+
           navigation.navigate('Login');
         },
       },
@@ -52,7 +49,6 @@ const handleLogout = (navigation) => {
   );
 };
 
-// Main dashboard screen with bottom navigation
 const screenOptions = ({ route, navigation }) => ({
   tabBarIcon: ({ focused, color, size }) => {
     let iconSource;

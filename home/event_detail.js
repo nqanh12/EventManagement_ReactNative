@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
-import { Card } from 'react-native-paper'; // Optional package for Card UI
+import { Card } from 'react-native-paper';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-import { format, isBefore } from 'date-fns'; // Import date-fns
-import axios from 'axios'; // Import axios
+import { format, isBefore } from 'date-fns';
+import axios from 'axios';
 
 const EventDetailsScreen = () => {
   const route = useRoute();
@@ -40,7 +40,6 @@ const EventDetailsScreen = () => {
       });
       if (response.data.code === 1000) {
         console.log('Event registered successfully');
-        // Optionally, you can update the state to reflect the registration status
       } else {
         Alert.alert('Lỗi', 'Không thể đăng ký sự kiện');
       }
@@ -59,7 +58,6 @@ const EventDetailsScreen = () => {
       });
       if (response.data.code === 1000) {
         Alert.alert('Thành công', 'Đăng ký sự kiện thành công');
-        // Optionally, you can update the state to reflect the registration status
       } else {
         Alert.alert('Lỗi', 'Không thể đăng ký sự kiện');
       }
@@ -140,7 +138,7 @@ const EventDetailsScreen = () => {
           onPress: async () => {
             await registerEventintoUser();
             await registerEventintoEvent();
-            navigation.replace('EventDetails', { ...route.params }); // Reload the page
+            navigation.replace('EventDetails', { ...route.params });
           },
         },
       ],
@@ -163,7 +161,7 @@ const EventDetailsScreen = () => {
             await deleteUser();
             await unregisterEvent();
             fetchRegisteredEvents();
-            navigation.replace('EventDetails', { ...route.params }); // Reload the page
+            navigation.replace('EventDetails', { ...route.params });
           },
         },
       ],
@@ -178,7 +176,7 @@ const EventDetailsScreen = () => {
 
   return (
     <LinearGradient
-      colors={['#ADD8E6', '#005cfb']} // Light blue to deep blue gradient
+      colors={['#ADD8E6', '#005cfb']} 
       style={styles.container}>
       {/* AppBar */}
       <View style={styles.container_header}>
@@ -230,12 +228,12 @@ const EventDetailsScreen = () => {
               <Text style={styles.eventDetail}>Trạng thái check-in: </Text>
               {currentEvent?.checkInStatus ? (
                 <Image
-                  source={require('./assets/true.png')} // Thay đổi với đường dẫn tới hình ảnh check-in của bạn
+                  source={require('./assets/true.png')}
                   style={styles.statusIcon}
                 />
               ) : (
                 <Image
-                  source={require('./assets/false.png')} // Thay đổi với đường dẫn tới hình ảnh chưa check-in của bạn
+                  source={require('./assets/false.png')}
                   style={styles.statusIcon}
                 />
               )}
@@ -244,12 +242,12 @@ const EventDetailsScreen = () => {
               <Text style={styles.eventDetail}>Trạng thái check-out: </Text>
               {currentEvent?.checkOutStatus ? (
                 <Image
-                  source={require('./assets/true.png')} // Thay đổi với đường dẫn tới hình ảnh check-out của bạn
+                  source={require('./assets/true.png')}
                   style={styles.statusIcon}
                 />
               ) : (
                 <Image
-                  source={require('./assets/false.png')} // Thay đổi với đường dẫn tới hình ảnh chưa check-out của bạn
+                  source={require('./assets/false.png')}
                   style={styles.statusIcon}
                 />
               )}

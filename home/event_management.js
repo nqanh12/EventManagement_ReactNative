@@ -303,15 +303,15 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalTitle: {
-    fontSize: 22, // Larger title
+    fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#333', // Darker text for contrast
+    color: '#333',
   },
   modalInput: {
-    backgroundColor: '#f9f9f9', // Slight opacity
+    backgroundColor: '#f9f9f9',
     padding: 10,
-    borderRadius: 12, // Rounded corners
+    borderRadius: 12,
     borderColor: '#ccc',
     borderWidth: 1,
     marginBottom: 15,

@@ -12,8 +12,8 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { useRoute, useFocusEffect } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-import axios from 'axios'; // Import axios
-import { format, isAfter, isBefore, isWithinInterval } from 'date-fns'; // Import date-fns
+import axios from 'axios';
+import { format, isAfter, isBefore, isWithinInterval } from 'date-fns';
 
 const EventListScreen = ({ navigation }) => {
   const [events, setEvents] = useState([]);
@@ -29,12 +29,12 @@ const EventListScreen = ({ navigation }) => {
     try {
       const response = await axios.get('http://10.0.2.2:8080/api/events/listEvent', {
         headers: {
-          Authorization: `Bearer ${token}`, // Replace with your actual token
+          Authorization: `Bearer ${token}`,
         },
       });
       const sortedEvents = response.data.result.sort((b, a) => new Date(a.dateStart) - new Date(b.dateStart));
       setEvents(sortedEvents);
-      applyFilter(filter, sortedEvents); // Apply the filter to the fetched events
+      applyFilter(filter, sortedEvents);
     } catch (error) {
       console.error('Error fetching events:', error);
     }
@@ -44,7 +44,7 @@ const EventListScreen = ({ navigation }) => {
     try {
       const response = await axios.get('http://10.0.2.2:8080/api/users/getRegisteredEvents', {
         headers: {
-          Authorization: `Bearer ${token}`, // Replace with your actual token
+          Authorization: `Bearer ${token}`,
         },
       });
       if (response.data.code === 1000) {
@@ -146,7 +146,7 @@ const EventListScreen = ({ navigation }) => {
               location: item.location,
               description: item.description,
               managerName: item.managerName,
-              isRegistered: registered, // Pass the registration status
+              isRegistered: registered,
               token: token,
             });
           }
@@ -173,7 +173,7 @@ const EventListScreen = ({ navigation }) => {
                   checkOutStatus: item.checkOutStatus,
                   description: item.description,
                   managerName: item.managerName,
-                  isRegistered: registered, // Pass the registration status
+                  isRegistered: registered,
                   token: token,
                 });
               }
@@ -181,7 +181,7 @@ const EventListScreen = ({ navigation }) => {
             disabled={pastEvent}
           >
             <Image
-              source={require('./assets/detail_icon.png')} // Thay đổi với icon của bạn
+              source={require('./assets/detail_icon.png')}
               style={styles.detailIcon}
             />
           </TouchableOpacity>
@@ -192,7 +192,7 @@ const EventListScreen = ({ navigation }) => {
 
   return (
     <LinearGradient
-      colors={['#ADD8E6', '#005cfb']} // Light blue to deep blue gradient
+      colors={['#ADD8E6', '#005cfb']}
       style={styles.container}
     >
       <View style={styles.container_header}>
@@ -244,7 +244,7 @@ const EventListScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e0ecff', // Light blue gradient
+    backgroundColor: '#e0ecff',
   },
   container_header: {
     flexDirection: 'row',
@@ -327,10 +327,10 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   registeredEventCard: {
-    backgroundColor: '#d4edda', // Green background for registered events
+    backgroundColor: '#d4edda',
   },
   pastEventCard: {
-    backgroundColor: '#f8d7da', // Red background for past events
+    backgroundColor: '#f8d7da',
   },
   eventTitle: {
     fontSize: 22,
