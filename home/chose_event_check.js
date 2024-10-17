@@ -7,35 +7,45 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  RefreshControl,
 } from 'react-native';
+import { useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
+import axios from 'axios';
+import { format, isWithinInterval } from 'date-fns';
 
 const ChoseEventCheck = ({ navigation }) => {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const route = useRoute();
+  const { token } = route.params;
 
-  const loadMoreEvents = useCallback(() => {
-    const newEvents = Array.from({ length: 10 }, (_, index) => ({
-      id: events.length + index,
-      name: `Event ${events.length + index}`,
-      startDate: getFormattedDate(events.length + index),
-      description: `Mô tả cho sự kiện ${events.length + index}`,
-    }));
-
-    setEvents((prevEvents) => [...prevEvents, ...newEvents]);
-    setFilteredEvents((prevEvents) => [...prevEvents, ...newEvents]);
-  }, [events.length]);
+  const fetchEvents = useCallback(async () => {
+    try {
+      const response = await axios.get('http://10.0.2.2:8080/api/events/listEvent', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const sortedEvents = response.data.result.sort((b, a) => new Date(a.dateStart) - new Date(b.dateStart));
+      const todayEvents = sortedEvents.filter(event =>
+        isWithinInterval(new Date(), {
+          start: new Date(event.dateStart),
+          end: new Date(event.dateEnd),
+        })
+      );
+      setEvents(todayEvents);
+      setFilteredEvents(todayEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  }, [token]);
 
   useEffect(() => {
-    loadMoreEvents(); // Load initial events
-  }, []);
-
-  const getFormattedDate = (index) => {
-    const now = new Date();
-    const date = new Date(now.setDate(now.getDate() + index));
-    return `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
-  };
+    fetchEvents();
+  }, [fetchEvents]);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -49,13 +59,18 @@ const ChoseEventCheck = ({ navigation }) => {
     }
   };
 
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchEvents().then(() => setRefreshing(false));
+  };
+
   const renderEventCard = ({ item }) => (
     <TouchableOpacity
       style={styles.eventCard}
       onPress={() =>
         navigation.navigate('EventDetails', {
           name: item.name,
-          startDate: item.startDate,
+          startDate: item.dateStart,
           description: item.description,
         })
       }
@@ -64,13 +79,14 @@ const ChoseEventCheck = ({ navigation }) => {
         {/* Event Details on the Left */}
         <View style={styles.eventInfo}>
           <Text style={styles.eventTitle}>{item.name}</Text>
-          <Text style={styles.eventDate}>Ngày bắt đầu: {item.startDate}</Text>
+          <Text style={styles.eventDate}>Ngày bắt đầu: {format(new Date(item.dateStart), 'dd/MM/yyyy HH:mm')}</Text>
+          <Text style={styles.eventDate}>Ngày kết thúc: {format(new Date(item.dateEnd), 'dd/MM/yyyy HH:mm')}</Text>
         </View>
 
         {/* Icon on the Right */}
-        <TouchableOpacity onPress={() => navigation.navigate('ScanQR', { id: item.id })}>
+        <TouchableOpacity onPress={() => navigation.navigate('QRCodeScannerScreen', { eventId: item.eventId , token : token })}>
           <Image
-            source={require('./assets/scan_qr.png')} // Thay đổi với icon của bạn
+            source={require('./assets/scan_qr.png')}
             style={styles.iconscan}
           />
         </TouchableOpacity>
@@ -80,7 +96,7 @@ const ChoseEventCheck = ({ navigation }) => {
 
   return (
     <LinearGradient
-      colors={['#ADD8E6', '#005cfb']} // Light blue to deep blue gradient
+      colors={['#ADD8E6', '#005cfb']}
       style={styles.container}
     >
       <View style={styles.container_header}>
@@ -98,14 +114,15 @@ const ChoseEventCheck = ({ navigation }) => {
           onChangeText={handleSearch}
         />
 
-        {/* Picker for filtering */}
-
         <FlatList
           data={filteredEvents}
-          renderItem={renderEventCard} // Ensure you pass the render function correctly
+          renderItem={renderEventCard}
           keyExtractor={(item) => item.id.toString()}
-          onEndReached={loadMoreEvents}
+          onEndReached={fetchEvents}
           onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       </View>
     </LinearGradient>
@@ -115,14 +132,14 @@ const ChoseEventCheck = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e0ecff', // Light blue gradient
+    backgroundColor: '#e0ecff',
   },
   container_header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 16,
-    backgroundColor: '#1975D7', // Adding a gradient to the header could be considered
+    backgroundColor: '#1975D7',
     elevation: 5,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -131,15 +148,15 @@ const styles = StyleSheet.create({
   icon_back: {
     width: 30,
     height: 30,
-    tintColor: '#fff', // Make the back icon white for contrast
+    tintColor: '#fff',
   },
   title: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff', // White title for contrast against a darker background
+    color: '#fff',
     textAlign: 'center',
     flex: 1,
-    marginEnd: 30, // Ensures the title is centered
+    marginEnd: 30,
   },
   sub_container: {
     flex: 1,
@@ -156,7 +173,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
-    flexDirection: 'row', // Added for inline icon
+    flexDirection: 'row',
     alignItems: 'center',
   },
   filterContainer: {
@@ -188,39 +205,37 @@ const styles = StyleSheet.create({
   },
   eventCard: {
     backgroundColor: '#fff',
-    padding: 20, // Increased padding for better spacing
-    borderRadius: 15, // More rounded edges
+    padding: 20,
+    borderRadius: 15,
     marginBottom: 15,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 3,
-    // Optional gradient background:
   },
   eventTitle: {
-    fontSize: 20, // Slightly increased font size
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#1975D7', // Accent color for event name
+    color: 'black',
   },
   eventDate: {
     fontSize: 14,
-    color: '#888', // Lighter color for date to contrast with the title
+    color: '#888',
   },
 
-  // Design Event List Card
 
   eventDetailsContainer: {
-    flexDirection: 'row', // Đặt chi tiết và icon theo chiều ngang
-    justifyContent: 'space-between', // Đẩy icon sang bên phải
-    alignItems: 'center', // Căn giữa icon và thông tin
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   eventInfo: {
-    flex: 1, // Để thông tin sự kiện chiếm toàn bộ bên trái
+    flex: 1,
   },
   iconscan: {
     width: 80,
     height: 80,
-    tintColor: '#1975D7', // Màu của icon, bạn có thể tùy chỉnh
+    tintColor: 'black',
   },
 });
 

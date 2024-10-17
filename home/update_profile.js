@@ -1,22 +1,87 @@
+import { useRoute } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ImageBackground, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, ImageBackground, StyleSheet, ScrollView, Alert } from 'react-native';
+import { RadioButton } from 'react-native-paper';
+import axios from 'axios';
 
 const UpdateModifile = ({ navigation }) => {
-  const [name, setName] = useState('Nguyễn QuốcAnh');
-  const [gender, setGender] = useState('Nam');
-  const [dob, setDob] = useState('12/05/2003');
-  const [phone, setPhone] = useState('+84 98 728 46 71');
-  const [email, setEmail] = useState('chaybon894@gmail.com');
-  const [address, setAddress] = useState('566/197/25 Nguyễn Thái Sơn');
-  const [class_id, setClass] = useState('12DHTH06');
+  const route = useRoute();
+  const { userInfo, token } = route.params;
 
+  const [fullName, setFullName] = useState(userInfo?.full_Name || '');
+  const [gender, setGender] = useState(userInfo?.gender || 'Nam');
+  const [phone, setPhone] = useState(userInfo?.phone || '');
+  const [classId, setClassId] = useState(userInfo?.class_id || '');
+  const [email, setEmail] = useState(userInfo?.email || '');
+  const [address, setAddress] = useState(userInfo?.address || '');
 
+  const isValidEmail = (mail) => {
+    return mail.endsWith('@gmail.com');
+  };
+
+  const isValidPhone = (phoneNumber) => {
+    return /^\d+$/.test(phoneNumber);
+  };
+
+  const handleSave = async () => {
+    if (!userInfo) {
+      console.error('userInfo is undefined');
+      return;
+    }
+
+    if (!fullName || !gender || !phone || !classId || !email || !address) {
+      Alert.alert('Lỗi', 'Không được để trốn thông tin nào');
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      Alert.alert('Lỗi', 'Sai định dạng mail');
+      return;
+    }
+
+    if (!isValidPhone(phone)) {
+      Alert.alert('Lỗi', 'Số điện thoại đúng không định dạng');
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        'http://10.0.2.2:8080/api/users/updateInfo',
+        {
+          userName: userInfo.userName,
+          full_Name: fullName,
+          gender: gender,
+          class_id: classId,
+          email: email,
+          phone: phone,
+          address: address,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.data.code === 1000) {
+        console.log('Cập nhật thành công', response.data.result);
+        Alert.alert('Thành công', 'Cập nhật hồ sơ thành công', [
+          { text: 'OK', onPress: () => navigation.navigate('ModifilePersonal', { updatedUserInfo: response.data.result, token: token }) },
+        ]);
+      } else {
+        console.error('Cập nhật thất bại:', response.data);
+        Alert.alert('Thất bại', 'Cập nhật hồ sơ thất bại');
+      }
+    } catch (error) {
+      console.error('Lỗi khi cập nhật:', error);
+      Alert.alert('Lỗi', 'Đã xảy ra lỗi khi cập nhật hồ sơ');
+    }
+  };
 
   return (
     <View style={styles.container}>
       {/* Background Image */}
       <ImageBackground
-        source={require('./assets/background.png')} // Replace with your image
+        source={require('./assets/background.png')}
         style={styles.backgroundImage}
       >
         <View style={styles.container_header}>
@@ -30,24 +95,36 @@ const UpdateModifile = ({ navigation }) => {
           <View style={styles.headerContainer}>
             {/* Profile Picture */}
             <Image
-              source={require('./assets/profile-icon.png')} // Replace with your avatar image
+              source={require('./assets/profile-icon.png')}
               style={styles.avatar}
             />
           </View>
 
           {/* Info Section */}
           <ScrollView style={styles.infoContainer}>
-            {renderInputField('Tên', name, setName)}
-            {renderInputField('Giới tính', gender, setGender)}
-            {renderInputField('Lớp', class_id, setClass)}
-            {renderInputField('Ngày sinh', dob, setDob)}
+            {renderInputField('Tên', fullName, setFullName)}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Giới tính</Text>
+              <RadioButton.Group onValueChange={value => setGender(value)} value={gender}>
+                <View style={styles.radioButtonContainer}>
+                  <View style={styles.radioButton}>
+                    <Text>Nam</Text>
+                    <RadioButton value="Nam" />
+                  </View>
+                  <View style={styles.radioButton}>
+                    <Text>Nữ</Text>
+                    <RadioButton value="Nữ" />
+                  </View>
+                </View>
+              </RadioButton.Group>
+            </View>
+            {renderInputField('Lớp', classId, setClassId)}
             {renderInputField('Điện thoại', phone, setPhone)}
             {renderInputField('Email', email, setEmail)}
             {renderInputField('Địa chỉ', address, setAddress)}
 
-
             {/* Save Button */}
-            <TouchableOpacity style={styles.saveButton} onPress={() => { /* Handle save logic */ }}>
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.saveButtonText}>Lưu thay đổi</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -74,6 +151,16 @@ const renderInputField = (label, value, setValue) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  radioButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButton: {
+    flexDirection: 'row',
+    marginHorizontal: 50,
+    alignItems: 'center',
   },
   container_header: {
     flexDirection: 'row',

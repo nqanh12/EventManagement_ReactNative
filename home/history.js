@@ -1,111 +1,130 @@
-import React, { useState } from 'react';
-import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, FlatList, StyleSheet, TouchableOpacity, RefreshControl, TextInput } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { Picker } from '@react-native-picker/picker';
+import { useRoute } from '@react-navigation/native';
 
 const HistoryScreen = ({ navigation }) => {
-  const [filter, setFilter] = useState('Tất cả');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [events, setEvents] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const route = useRoute();
+  const { token } = route.params;
 
-  const events = [
-    {
-      id: '1',
-      name: 'Orientation Day',
-      startDate: '2024-08-01',
-      endDate: '2024-08-01',
-      status: 'Chưa hoàn thành',
-      icon: require('./assets/warning.png'), // Example icon
-      statusColor: '#FFA500', // Orange
-    },
-    {
-      id: '2',
-      name: 'Workshop on Flutter',
-      startDate: '2024-08-10',
-      endDate: '2024-08-10',
-      status: 'Đã hoàn thành',
-      icon: require('./assets/check.png'), // Example icon
-      statusColor: '#00FF00', // Green
-    },
-    {
-      id: '3',
-      name: 'React Native Seminar',
-      startDate: '2024-08-15',
-      endDate: '2024-08-15',
-      status: 'Đã Bỏ lỡ',
-      icon: require('./assets/error.png'), // Example icon
-      statusColor: '#FF0000', // Red
-    },
-    {
-      id: '4',
-      name: 'Hackathon',
-      startDate: '2024-08-20',
-      endDate: '2024-08-20',
-      status: 'Đã Bỏ lỡ',
-      icon: require('./assets/error.png'), // Example icon
-      statusColor: '#FF0000', // Red
-    },
-    {
-      id: '5',
-      name: 'Hackathon 2',
-      startDate: '2024-08-21',
-      endDate: '2024-08-21',
-      status: 'Đã Bỏ lỡ',
-      icon: require('./assets/error.png'), // Example icon
-      statusColor: '#FF0000', // Red
-    },
-    {
-      id: '6',
-      name: 'Hackathon 2',
-      startDate: '2024-08-21',
-      endDate: '2024-08-21',
-      status: 'Đã Bỏ lỡ',
-      icon: require('./assets/error.png'), // Example icon
-      statusColor: '#FF0000', // Red
-    },
-    {
-      id: '7',
-      name: 'Hackathon 2',
-      startDate: '2024-08-21',
-      endDate: '2024-08-21',
-      status: 'Đã Bỏ lỡ',
-      icon: require('./assets/error.png'), // Example icon
-      statusColor: '#FF0000', // Red
-    },
-    {
-      id: '8',
-      name: 'Hackathon 2',
-      startDate: '2024-08-21',
-      endDate: '2024-08-21',
-      status: 'Đã Bỏ lỡ',
-      icon: require('./assets/error.png'), // Example icon
-      statusColor: '#FF0000', // Red
-    },
-  ];
+  const fetchEventName = async (eventId) => {
+    try {
+      const response = await fetch(`http://10.0.2.2:8080/api/events/getEventName/${eventId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      if (data.code === 1000) {
+        return data.result.name;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    return `Event ${eventId}`; // Fallback name
+  };
 
-  const handleFilter = (value) => {
-    setFilter(value);
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch('http://10.0.2.2:8080/api/users/getRegisteredEvents', {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      if (data.code === 1000) {
+        const fetchedEvents = await Promise.all(data.result.eventsRegistered.map(async (event) => {
+          const eventName = await fetchEventName(event.eventId);
+          let statusText = 'Đang xử lý';
+          let statusColor = '#FF0000'; // Red for processing
+
+          if (event.checkInStatus && event.checkOutStatus) {
+            statusText = 'Đã hoàn thành';
+            statusColor = '#00FF00'; // Green for completed
+          } else if(!event.checkInStatus && !event.checkOutStatus)
+            {
+              statusText = 'Đang xử lý';
+              statusColor = '#FF0000';
+            }
+           else if (!event.checkInStatus) {
+            statusText = 'Chưa check-in';
+            statusColor = '#FFA500'; // Orange for not checked in
+          } else if (!event.checkOutStatus) {
+            statusText = 'Chưa check-out';
+            statusColor = '#FFA500'; // Yellow for checked in but not checked out
+          }
+
+          return {
+            id: event.eventId,
+            name: eventName,
+            registrationDate: event.registrationDate.split('T')[0],
+            checkInStatus: event.checkInStatus,
+            checkInTime: event.checkInTime,
+            checkOutStatus: event.checkOutStatus,
+            checkOutTime: event.checkOutTime,
+            statusText,
+            statusColor,
+          };
+        }));
+        setEvents(fetchedEvents);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [token]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchEvents().then(() => setRefreshing(false));
   };
 
   const filteredEvents = events.filter((event) => {
-    if (filter === 'Tất cả') {return true;}
-    if (filter === 'Sắp tới') {return new Date(event.startDate) > new Date();}
-    if (filter === 'Đã qua') {return new Date(event.startDate) <= new Date();}
-    return true;
+    return event.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const renderItem = ({ item }) => (
     <View style={styles.eventCard}>
       <View style={styles.eventInfo}>
-        <Image source={item.icon} style={styles.icon} />
         <View style={styles.textContainer}>
           <Text style={styles.eventTitle}>{item.name}</Text>
-          <Text style={styles.eventDate}>
-            BĐ: {item.startDate} {'\n'} KT: {item.endDate}
-          </Text>
+          <View style={styles.textContainer}>
+            <Text style={styles.eventDate}>
+              Check-in:
+              <Image
+                source={item.checkInStatus ? require('./assets/checkIN.png') : require('./assets/uncheck.png')}
+                style={styles.statusIcon}
+              />
+            </Text>
+            <Text style={styles.eventDate}>
+              Thời gian ra: {item.checkInTime || 'Chưa cập nhật'}
+            </Text>
+            <Text style={styles.eventDate}>
+              Check-out:
+              <Image
+                source={item.checkOutStatus ? require('./assets/checkIN.png') : require('./assets/uncheck.png')}
+                style={styles.statusIcon}
+              />
+            </Text>
+            <Text style={styles.eventDate}>
+              Thời gian ra: {item.checkOutTime || 'Chưa cập nhật'}
+            </Text>
+          </View>
         </View>
       </View>
       <View style={styles.statusContainer}>
         <Text style={[styles.status, { color: item.statusColor }]}>
-          {item.status}
+          {item.statusText}
         </Text>
       </View>
     </View>
@@ -117,26 +136,22 @@ const HistoryScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Image source={require('./assets/back_page.png')} style={styles.icon_back} />
         </TouchableOpacity>
-        <Text style={styles.title}>Lịch Sử</Text>
+        <Text style={styles.title}>Trạng thái</Text>
       </View>
       <View style={styles.sub_container}>
-        <View style={styles.filterContainer}>
-          <Text style={styles.filterLabel}>Lọc: </Text>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={filter}
-              onValueChange={(itemValue) => handleFilter(itemValue)}
-              style={styles.picker}>
-              <Picker.Item label="Tất cả" value="Tất cả" />
-              <Picker.Item label="Sắp tới" value="Sắp tới" />
-              <Picker.Item label="Đã qua" value="Đã qua" />
-            </Picker>
-          </View>
-        </View>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Tìm kiếm sự kiện..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
         <FlatList
           data={filteredEvents}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       </View>
     </LinearGradient>
@@ -198,52 +213,37 @@ const styles = StyleSheet.create({
     flex: 0,
   },
   eventTitle: {
-    fontSize: 18,
+    fontSize: 23,
     fontWeight: 'bold',
     color: '#000',
   },
   eventDate: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#888',
+    marginTop: 3,
+    marginBottom: 3,
+  },
+  statusIcon: {
+    width: 20,
+    height: 20,
+  },
+  statusContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   status: {
-    fontSize: 16,
-    alignSelf: 'flex-end',
+    fontSize: 20,
     fontWeight: 'bold',
-    marginTop: 5, // Add some spacing between the date and the status
+    marginRight: 5,
   },
-  eventTime: {
-    fontSize: 14,
-    alignSelf: 'flex-end',
-    color: '#888',
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    elevation: 5,
-  },
-  filterLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  pickerWrapper: {
-    flex: 1,
-    backgroundColor: '#fff',
+  searchBar: {
+    height: 70,
+    borderColor: '#ccc',
+    borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-    marginLeft: 10,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-  },
-  eventList: {
-    flexGrow: 1,
+    marginBottom: 20,
+    backgroundColor: '#fff',
   },
 });
 

@@ -8,7 +8,7 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient'; // You'll need to install this package
+import LinearGradient from 'react-native-linear-gradient';
 
 const ChangePasswordScreen = ({navigation}) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -16,7 +16,6 @@ const ChangePasswordScreen = ({navigation}) => {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   const handleChangePassword = () => {
-    // Add your password change logic here
     console.log('Change password logic');
   };
 
@@ -64,7 +63,6 @@ const ChangePasswordScreen = ({navigation}) => {
   );
 };
 
-// Custom password input field component
 const CustomPasswordField = ({ label, value, onChangeText }) => (
   <View style={styles.inputContainer}>
     <TextInput
@@ -80,7 +78,7 @@ const CustomPasswordField = ({ label, value, onChangeText }) => (
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Light blue background for the screen
+    flex: 1,
   },
   container_header: {
     flexDirection: 'row',
@@ -115,13 +113,13 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     padding: 16,
-    paddingTop: 20, // To simulate the AppBar's space
+    paddingTop: 20,
   },
   appBar: {
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(25, 117, 215, 1)', // Match AppBar color
+    backgroundColor: 'rgba(25, 117, 215, 1)',
     borderRadius: 8,
     marginBottom: 20,
   },

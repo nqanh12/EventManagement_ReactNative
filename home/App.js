@@ -13,7 +13,12 @@ import Setting from './setting';
 import ChangePassword from './change_password';
 import ModifilePersonal from './modify_profile';
 import UpdateModifile from './update_profile';
-
+import LanguageSettings from './language_setting';
+import NotificationSettings from './notification_setting';
+import QRCodeScannerScreen from './qrcode_scanner';
+import QRCodeScreen from './qrcode';
+import DashboardAdmin from './dash_board_admin';
+import ListStudentEvent from './list_student_event';
 const Stack = createNativeStackNavigator();
 
 function App() {
@@ -32,6 +37,12 @@ function App() {
         <Stack.Screen name="ChangePassword" component={ChangePassword} options={{headerShown:false}} />
         <Stack.Screen name="ModifilePersonal" component={ModifilePersonal} options={{headerShown:false}} />
         <Stack.Screen name="UpdateModifile" component={UpdateModifile} options={{headerShown:false}} />
+        <Stack.Screen name="LanguageSettings" component={LanguageSettings} options={{headerShown:false}} />
+        <Stack.Screen name="NotificationSettings" component={NotificationSettings} options={{headerShown:false}} />
+        <Stack.Screen name="QRCodeScannerScreen" component={QRCodeScannerScreen} options={{headerShown:false}} />
+        <Stack.Screen name="QRCodeScreen" component={QRCodeScreen} options={{headerShown:false}} />
+        <Stack.Screen name="DashboardAdmin" component={DashboardAdmin} options={{headerShown:false}} />
+        <Stack.Screen name="ListStudentEvent" component={ListStudentEvent} options={{headerShown:false}} />
       </Stack.Navigator>
     </NavigationContainer>
   );

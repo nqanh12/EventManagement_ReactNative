@@ -1,18 +1,183 @@
-/* eslint-disable react-native/no-inline-styles */
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity,Image } from 'react-native';
-import { Card } from 'react-native-paper'; // Optional package for Card UI
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image, Alert } from 'react-native';
+import { Card } from 'react-native-paper';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
+import { format, isBefore } from 'date-fns';
+import axios from 'axios';
 
-const EventDetailsScreen = ({ route }) => {
-  const { name, dateStart, dateEnd, location, description, checkInStatus, checkOutStatus, managerId } = route.params;
+const EventDetailsScreen = () => {
+  const route = useRoute();
+  const { name, dateStart, dateEnd, location, description, managerName, eventId, token } = route.params;
   const navigation = useNavigation();
+  const [registeredEventIds, setRegisteredEventIds] = useState([]);
+  const [registeredEvents, setRegisteredEvents] = useState([]);
+
+  const fetchQRCode = async () => {
+    try {
+      const response = await axios.get(`http://10.0.2.2:8080/api/users/getQRCode/${eventId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.code === 1000) {
+        navigation.navigate('QRCodeScreen', { qrCode: response.data.result.eventsRegistered[0].qrCode });
+      } else {
+        Alert.alert('Lỗi', 'Không thể lấy mã QR');
+      }
+    } catch (error) {
+      console.error('Error fetching QR code:', error);
+      Alert.alert('Lỗi', 'Đã xảy ra lỗi khi lấy mã QR');
+    }
+  };
+
+  const registerEventintoUser = async () => {
+    try {
+      const response = await axios.post(`http://10.0.2.2:8080/api/users/registerEvent/${eventId}`, null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.code === 1000) {
+        console.log('Event registered successfully');
+      } else {
+        Alert.alert('Lỗi', 'Không thể đăng ký sự kiện');
+      }
+    } catch (error) {
+      console.error('Error registering for event:', error);
+      Alert.alert('Lỗi', 'Đã xảy ra lỗi khi đăng ký sự kiện');
+    }
+  };
+
+  const registerEventintoEvent = async () => {
+    try {
+      const response = await axios.post(`http://10.0.2.2:8080/api/events/addParticipant/${eventId}`, null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.code === 1000) {
+        Alert.alert('Thành công', 'Đăng ký sự kiện thành công');
+      } else {
+        Alert.alert('Lỗi', 'Không thể đăng ký sự kiện');
+      }
+    } catch (error) {
+      console.error('Error registering for event:', error);
+      Alert.alert('Lỗi', 'Đã xảy ra lỗi khi đăng ký sự kiện');
+    }
+  };
+
+  const unregisterEvent = async () => {
+    try {
+      const response = await axios.delete(`http://10.0.2.2:8080/api/users/deleteRegisteredEvent/${eventId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.code === 1000) {
+        Alert.alert('Thành công', 'Huỷ đăng ký sự kiện thành công');
+      } else {
+        Alert.alert('Lỗi', 'Không thể huỷ đăng ký sự kiện');
+      }
+    } catch (error) {
+      console.error('Error unregistering for event:', error);
+      Alert.alert('Lỗi', 'Đã xảy ra lỗi khi huỷ đăng ký sự kiện');
+    }
+  };
+
+  const deleteUser = async () => {
+    try {
+      const response = await axios.delete(`http://10.0.2.2:8080/api/events/deleteParticipant/${eventId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.code === 1000) {
+        console.log('User deleted successfully');
+      } else {
+        Alert.alert('Lỗi', 'Không thể huỷ đăng ký sự kiện');
+      }
+    } catch (error) {
+      console.error('Error unregistering for event:', error);
+      Alert.alert('Lỗi', 'Đã xảy ra lỗi khi huỷ đăng ký sự kiện');
+    }
+  };
+
+  const fetchRegisteredEvents = useCallback(async () => {
+    try {
+      const response = await axios.get('http://10.0.2.2:8080/api/users/getRegisteredEvents', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.data.code === 1000) {
+        const eventIds = response.data.result.eventsRegistered.map(event => event.eventId);
+        setRegisteredEventIds(eventIds);
+        setRegisteredEvents(response.data.result.eventsRegistered);
+      }
+    } catch (error) {
+      console.error('Error fetching registered events:', error);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchRegisteredEvents();
+  }, [fetchRegisteredEvents]);
+
+  const handleRegisterEvent = async () => {
+    Alert.alert(
+      'Xác nhận',
+      'Bạn có chắc chắn muốn đăng ký sự kiện này không?',
+      [
+        {
+          text: 'Huỷ',
+          style: 'cancel',
+        },
+        {
+          text: 'Đồng ý',
+          onPress: async () => {
+            await registerEventintoUser();
+            await registerEventintoEvent();
+            navigation.replace('EventDetails', { ...route.params });
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
+  const handleDeleteEvent = async () => {
+    Alert.alert(
+      'Xác nhận',
+      'Bạn có chắc chắn muốn huỷ đăng ký sự kiện này không?',
+      [
+        {
+          text: 'Huỷ',
+          style: 'cancel',
+        },
+        {
+          text: 'Đồng ý',
+          onPress: async () => {
+            await deleteUser();
+            await unregisterEvent();
+            fetchRegisteredEvents();
+            navigation.replace('EventDetails', { ...route.params });
+          },
+        },
+      ],
+      { cancelable: false }
+    );
+  };
+
+  const isBeforeDateStart = isBefore(new Date(), new Date(dateStart));
+  const isRegistered = registeredEventIds.includes(eventId);
+
+  const currentEvent = registeredEvents.find(event => event.eventId === eventId);
 
   return (
     <LinearGradient
-        colors={['#ADD8E6', '#005cfb']} // Light blue to deep blue gradient
-        style={styles.container}>
+      colors={['#ADD8E6', '#005cfb']} 
+      style={styles.container}>
       {/* AppBar */}
       <View style={styles.container_header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -29,11 +194,19 @@ const EventDetailsScreen = ({ route }) => {
             <Text style={styles.eventName}>{name}</Text>
             <View style={styles.row}>
               <Text style={styles.icon}>📅</Text>
-              <Text style={styles.eventDetail}>{`${dateStart} - ${dateEnd}`}</Text>
+              <Text style={styles.eventDetail}>
+                {`Ngày bắt đầu: ${format(new Date(dateStart), 'dd/MM/yyyy hh:mm a')}`}
+              </Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={styles.icon}>📅</Text>
+              <Text style={styles.eventDetail}>
+                {`Ngày kết thúc: ${format(new Date(dateEnd), 'dd/MM/yyyy hh:mm a')}`}
+              </Text>
             </View>
             <View style={styles.row}>
               <Text style={styles.icon}>📍</Text>
-              <Text style={styles.eventDetail}>{location}</Text>
+              <Text style={styles.eventDetail}>Địa điểm : {location}</Text>
             </View>
           </View>
         </Card>
@@ -49,32 +222,59 @@ const EventDetailsScreen = ({ route }) => {
           <View style={styles.cardContent}>
             <View style={styles.row}>
               <Text style={styles.icon}>👤</Text>
-              <Text style={styles.eventDetail}>Manager ID: {managerId}</Text>
+              <Text style={styles.eventDetail}>Quản lí: {managerName}</Text>
             </View>
             <View style={styles.row}>
-              <Text style={checkInStatus ? styles.statusCheckIn : styles.statusNotCheckIn}>
-                {checkInStatus ? 'Đã check-in' : 'Chưa check-in'}
-              </Text>
+              <Text style={styles.eventDetail}>Trạng thái check-in: </Text>
+              {currentEvent?.checkInStatus ? (
+                <Image
+                  source={require('./assets/true.png')}
+                  style={styles.statusIcon}
+                />
+              ) : (
+                <Image
+                  source={require('./assets/false.png')}
+                  style={styles.statusIcon}
+                />
+              )}
             </View>
             <View style={styles.row}>
-              <Text style={checkOutStatus ? styles.statusCheckOut : styles.statusNotCheckOut}>
-                {checkOutStatus ? 'Đã check-out' : 'Chưa check-out'}
-              </Text>
+              <Text style={styles.eventDetail}>Trạng thái check-out: </Text>
+              {currentEvent?.checkOutStatus ? (
+                <Image
+                  source={require('./assets/true.png')}
+                  style={styles.statusIcon}
+                />
+              ) : (
+                <Image
+                  source={require('./assets/false.png')}
+                  style={styles.statusIcon}
+                />
+              )}
             </View>
           </View>
         </Card>
 
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={[styles.button, { backgroundColor: '#00ab34' }]}>
+          <TouchableOpacity
+            style={[styles.button, isRegistered || !isBeforeDateStart ? styles.disabledButton : styles.registerButton]}
+            disabled={isRegistered || !isBeforeDateStart}
+            onPress={handleRegisterEvent}
+          >
             <Text style={styles.buttonText}>Đăng ký</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, { backgroundColor: 'grey' }]} disabled>
+          <TouchableOpacity
+            style={[styles.button, isRegistered && isBeforeDateStart ? styles.unregisterButton : styles.disabledButton]}
+            disabled={!isRegistered || !isBeforeDateStart}
+            onPress={handleDeleteEvent}
+          >
             <Text style={styles.buttonText}>Huỷ đăng ký</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.button, { backgroundColor: 'blue' }]}
-            onPress={() => navigation.navigate('QRCodePage', { eventId: 'sv201930' })}
+            style={[styles.button, isRegistered ? styles.qrButton : styles.disabledButton]}
+            disabled={!isRegistered}
+            onPress={fetchQRCode}
           >
             <Text style={styles.buttonText}>Lấy mã QR</Text>
           </TouchableOpacity>
@@ -94,7 +294,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 16,
-    backgroundColor: '#1975D7', // Adding a gradient to the header could be considered
+    backgroundColor: '#1975D7',
     elevation: 5,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -103,15 +303,15 @@ const styles = StyleSheet.create({
   icon_back: {
     width: 30,
     height: 30,
-    tintColor: '#fff', // Make the back icon white for contrast
+    tintColor: '#fff',
   },
   title: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff', // White title for contrast against a darker background
+    color: '#fff',
     textAlign: 'center',
     flex: 1,
-    marginEnd: 30, // Ensures the title is centered
+    marginEnd: 30,
   },
   appBar: {
     height: 70,
@@ -125,13 +325,18 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: 'bold',
   },
+  statusIcon: {
+    width: 30,
+    height: 30,
+    marginHorizontal: 10,
+  },
   content: {
     elevation: 10,
     padding: 16,
   },
   card: {
     borderRadius: 15,
-    elevation: 10,
+    elevation: 20,
     marginBottom: 20,
   },
   cardContent: {
@@ -145,7 +350,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 5,
   },
   icon: {
     marginRight: 10,
@@ -203,6 +408,22 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  registerButton: {
+    backgroundColor: '#00ab34',
+    opacity: 1,
+  },
+  unregisterButton: {
+    backgroundColor: '#ff0000',
+    opacity: 1,
+  },
+  qrButton: {
+    backgroundColor: 'blue',
+    opacity: 1,
+  },
+  disabledButton: {
+    backgroundColor: 'grey',
+    opacity: 0.5,
   },
 });
 
