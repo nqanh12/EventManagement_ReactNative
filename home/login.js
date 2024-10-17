@@ -38,8 +38,18 @@ const LoginScreen = ({ navigation }) => {
 
       const result = await response.json();
       if (result.code === 1000) {
-        Alert.alert('Thông báo', 'Đăng nhập thành công');
-        navigation.navigate('Home', { token: result.result.token, role: result.result.role });
+        if (result.result.role === '[ADMIN]') {
+          navigation.navigate('DashboardAdmin', { token: result.result.token, role: result.result.role });
+          Alert.alert('Thông báo', 'Đăng nhập thành công');
+        }
+        if (result.result.role === '[USER]') {
+          navigation.navigate('Home', { token: result.result.token, role: result.result.role });
+          Alert.alert('Thông báo', 'Đăng nhập thành công');
+        }
+        if (result.result.role === '[MANAGER]') {
+          navigation.navigate('Home', { token: result.result.token, role: result.result.role });
+          Alert.alert('Thông báo', 'Đăng nhập thành công');
+        }
       } else {
         Alert.alert('Đăng nhập thất bại', 'Invalid credentials');
       }

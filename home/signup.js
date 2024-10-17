@@ -10,17 +10,34 @@ import {
   SafeAreaView,
   TouchableHighlight,
 } from 'react-native';
+import axios from 'axios'; // Import axios
 
-const RegisterScreen = ({navigation}) => {
+const RegisterScreen = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (password !== confirmPassword) {
       Alert.alert('Lỗi', 'Mật khẩu và xác nhận mật khẩu không trùng khớp.');
-    } else {
-      Alert.alert('Đăng ký thành công', `Chào mừng ${username}!`);
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://10.0.2.2:8080/api/users/register', {
+        userName: username,
+        password: password,
+      });
+
+      if (response.data.code === 1000) {
+        Alert.alert('Đăng ký thành công', `Chào mừng ${username}!`);
+        navigation.navigate('Login');
+      } else {
+        Alert.alert('Lỗi', 'Không thể đăng ký tài khoản.');
+      }
+    } catch (error) {
+      console.error('Error registering user:', error);
+      Alert.alert('Lỗi', 'Đã xảy ra lỗi khi đăng ký tài khoản.');
     }
   };
 
@@ -29,10 +46,7 @@ const RegisterScreen = ({navigation}) => {
       <View style={styles.background} />
       <View style={styles.topContainer}>
         <Text style={styles.title}>Đăng ký tài khoản</Text>
-        <Image
-          source={require('./assets/logo.png')}
-          style={styles.logo}
-        />
+        <Image source={require('./assets/logo.png')} style={styles.logo} />
       </View>
 
       <View style={styles.formContainer}>

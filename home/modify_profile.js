@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,47 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import axios from 'axios';
+import { useRoute } from '@react-navigation/native';
 
 const ModifyProfileScreen = ({ navigation }) => {
+  const [userInfo, setUserInfo] = useState({
+    full_Name: '',
+    gender: '',
+    phone: '',
+    dob: '',
+    class_id: '',
+    email: '',
+    address: '',
+    training_point: '',
+  });
+  const route = useRoute();
+  const { token } = route.params;
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await axios.get('http://10.0.2.2:8080/api/users/myInfo', {
+          headers: {
+            Authorization: 'Bearer ' + token,
+          },
+        });
+        setUserInfo(response.data.result);
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+      }
+    };
+    if (route.params?.updatedUserInfo) {
+      setUserInfo(route.params.updatedUserInfo);
+    } else {
+      fetchUserInfo();
+    }
+  }, [token, route.params?.updatedUserInfo]);
+
+
   return (
     <View style={styles.container}>
-      {/* Background Image */}
       <ImageBackground
-        source={require('./assets/background.png')} // Replace with your image
+        source={require('./assets/background.png')}
         style={styles.backgroundImage}>
         <View style={styles.container_header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -26,23 +60,27 @@ const ModifyProfileScreen = ({ navigation }) => {
           <View style={styles.headerContainer}>
             {/* Profile Picture */}
             <Image
-              source={require('./assets/profile-icon.png')} // Replace with your avatar image
+              source={require('./assets/profile-icon.png')}
               style={styles.avatar}
             />
-            <Text style={styles.name}>Nguyễn QuốcAnh</Text>
+            <Text style={styles.name}>{userInfo.full_Name || 'Chưa cập nhật'}</Text>
             <Text style={styles.subtitle}>Thông tin cá nhân</Text>
           </View>
 
           {/* Info Section */}
           <ScrollView style={styles.infoContainer}>
-            {renderInfoRow('Giới tính', 'Nam')}
-            {renderInfoRow('Điện thoại', '+84 98 728 46 71')}
-            {renderInfoRow('Ngày sinh', '12/05/2003')}
-            {renderInfoRow('Lớp', '12DHTH06')}
-            {renderInfoRow('Email', 'chaybon@gmail.com')}
-            {renderInfoRow('Địa chỉ', '566/197/25 Nguyễn Thái Sơn')}
+            {renderInfoRow('MSSV', userInfo.userName)}
+            {renderInfoRow('Giới tính', userInfo.gender)}
+            {renderInfoRow('Điện thoại', userInfo.phone)}
+            {renderInfoRow('Điểm rèn luyện', userInfo.training_point)}
+            {renderInfoRow('Lớp', userInfo.class_id)}
+            {renderInfoRow('Email', userInfo.email)}
+            {renderInfoRow('Địa chỉ', userInfo.address)}
             {/* Edit Button */}
-            <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('UpdateModifile')}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => navigation.navigate('UpdateModifile', { token: token, userInfo: userInfo })} // Đảm bảo tên màn hình là 'UpdateModifile'
+            >
               <Text style={styles.editButtonText}>Chỉnh sửa</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -53,6 +91,7 @@ const ModifyProfileScreen = ({ navigation }) => {
 };
 
 const truncateString = (str, num) => {
+  if (!str) {return '';} // Check if str is undefined or null
   if (str.length <= num) {
     return str;
   }
@@ -64,7 +103,7 @@ const renderInfoRow = (label, value) => {
   return (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{truncateString(value, 20)}</Text>
+      <Text style={styles.infoValue}>{truncateString(value || 'Chưa cập nhật', 20)}</Text>
     </View>
   );
 };
@@ -140,11 +179,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   infoLabel: {
-    fontSize: 16,
+    fontSize: 17,
     color: 'black',
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
     color: 'black',
   },

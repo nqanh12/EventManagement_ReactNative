@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import QRCode from 'react-native-qrcode-svg';
 import LinearGradient from 'react-native-linear-gradient';
 
-const QRCodeScreen = ({ route }) => {
-  const { eventId } = route.params;
+const QRCodeScreen = () => {
+  const route = useRoute();
+  const { qrCode } = route.params;
   const navigation = useNavigation();
-  let  base64Logo  =  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAA..';
+  let base64Logo = 'data:image/png;base64,' + require('./assets/logo.png').data;
   return (
     <LinearGradient colors={['#ADD8E6', '#005cfb']} style={styles.container}>
       {/* AppBar */}
@@ -20,19 +21,22 @@ const QRCodeScreen = ({ route }) => {
 
       {/* QR Code Content */}
       <View style={styles.qrContainer}>
-        <QRCode
-          value={eventId}
-          size={350}
-          color="black"
-          backgroundColor="white"
-          logo = { { uri : base64Logo } }
-          logoSize = { 30 }
-        />
+        <View style={styles.qrBackground}>
+          <QRCode
+            value={qrCode}
+            size={350}
+            color="black"
+            backgroundColor="white"
+            logo={{ uri: base64Logo }}
+            logoSize={30}
+          />
+        </View>
       </View>
       <View style={styles.container_bottom}>
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Lưu ảnh</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.button}>
+          <Image source={require('./assets/save_icon.png')} style={styles.icon_save} />
+          <Text style={styles.buttonText}>Lưu ảnh</Text>
+        </TouchableOpacity>
       </View>
     </LinearGradient>
   );
@@ -69,8 +73,13 @@ const styles = StyleSheet.create({
   qrContainer: {
     flex: 1,
     justifyContent: 'center',
-    marginBottom: 0,
     alignItems: 'center',
+  },
+  qrBackground: {
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 30,
+    elevation: 20,
   },
   container_bottom: {
     flex: 0.5,
@@ -79,6 +88,8 @@ const styles = StyleSheet.create({
     marginBottom: 50,
   },
   button: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 18,
     paddingHorizontal: 32,
     borderRadius: 10,
@@ -87,10 +98,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     backgroundColor: 'white',
   },
+  icon_save: {
+    width: 40,
+    height: 40,
+    marginRight: 10,
+  },
   buttonText: {
     color: 'black',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 18,
   },
 });
 

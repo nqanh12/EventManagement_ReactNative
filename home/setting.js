@@ -8,45 +8,51 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
-
-const settingsOptions = [
-  {
-    title: 'Thay đổi mật khẩu',
-    icon: require('./assets/lock.png'),
-    screen: 'ChangePassword', // Add your navigation route name here
-  },
-  {
-    title: 'Cập nhật thông tin cá nhân',
-    icon: require('./assets/person.png'),
-    screen: 'ModifilePersonal', // Add your navigation route name here
-  },
-  {
-    title: 'Cài đặt ngôn ngữ',
-    icon: require('./assets/language.png'),
-    screen: 'LanguageSettings', // Add your navigation route name here
-  },
-  {
-    title: 'Cài đặt thông báo',
-    icon: require('./assets/notification_unactive.png'),
-    screen: 'NotificationSettings', // Add your navigation route name here
-  },
-  {
-    title: 'Đăng xuất',
-    icon: require('./assets/logout.png'),
-    screen: 'Login', // Add your login route here
-  },
-];
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { token } = route.params;
+
+  const settingsOptions = [
+    {
+      title: 'Thay đổi mật khẩu',
+      icon: require('./assets/lock.png'),
+      screen: 'ChangePassword',
+      token: token,
+    },
+    {
+      title: 'Cập nhật thông tin cá nhân',
+      icon: require('./assets/person.png'),
+      screen: 'ModifilePersonal',
+      token: token,
+    },
+    {
+      title: 'Cài đặt ngôn ngữ',
+      icon: require('./assets/language.png'),
+      screen: 'LanguageSettings',
+      token: token,
+    },
+    {
+      title: 'Cài đặt thông báo',
+      icon: require('./assets/notification_unactive.png'),
+      screen: 'NotificationSettings',
+      token: token,
+    },
+    {
+      title: 'Đăng xuất',
+      icon: require('./assets/logout.png'),
+      screen: 'Login',
+    },
+  ];
 
   const handleOptionPress = (item) => {
     if (item.title === 'Đăng xuất') {
       showLogoutAlert();
     } else {
-      navigation.navigate(item.screen);
+      navigation.navigate(item.screen, { token: item.token });
     }
   };
 
@@ -90,14 +96,14 @@ const SettingsScreen = () => {
         </TouchableOpacity>
         <Text style={styles.title}>Lịch Sử</Text>
       </View>
-    <View style={styles.container}>
-      <FlatList
-        data={settingsOptions}
-        keyExtractor={(item) => item.title}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-      />
-    </View>
+      <View style={styles.container}>
+        <FlatList
+          data={settingsOptions}
+          keyExtractor={(item) => item.title}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+        />
+      </View>
     </LinearGradient>
   );
 };

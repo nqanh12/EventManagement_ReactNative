@@ -1,5 +1,5 @@
 import { useRoute } from '@react-navigation/native';
-import React from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,35 +8,96 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient'; // Correct import for LinearGradient
+import LinearGradient from 'react-native-linear-gradient';
+import axios from 'axios'; // Import axios
 
 // Sửa lại component Button
-function Button({ name, icon, handle, navigation }) {
+function Button({ name, icon, handle, navigation, token, role }) {
   return (
-    <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate(handle)} >
+    <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate(handle, { token: token, role: role })} >
       <Image source={icon} style={styles.navIcon} />
       <Text style={styles.navText}>{name}</Text>
     </TouchableOpacity>
   );
 }
 
-function ListEvents() {
-  return (
-    <View style={styles.eventCard}>
-      <Text style={styles.eventName}>Hội thảo tổ chức sự kiện</Text>
-      <Text style={styles.eventDetails}>Ngày: 28 - 5 - 2024</Text>
-      <Text style={styles.eventDetails}>Giờ: 10:00 AM</Text>
-      <Text style={styles.eventDetails}>Địa điểm: Hội trường C</Text>
-      <TouchableOpacity style={styles.detailButton}>
+function ListEvents({ events, navigation, token }) {
+  return events.map(event => (
+    <View key={event.eventId} style={styles.eventCard}>
+      <Text style={styles.eventName}>{event.name}</Text>
+      <Text style={styles.eventDetails}>Ngày: {new Date(event.dateStart).toLocaleDateString()}</Text>
+      <Text style={styles.eventDetails}>Giờ: {new Date(event.dateStart).toLocaleTimeString()}</Text>
+      <Text style={styles.eventDetails}>Địa điểm: {event.locationId}</Text>
+      <TouchableOpacity
+        style={styles.detailButton}
+        onPress={() =>
+          navigation.navigate('EventDetails', {
+            eventId: event.eventId,
+            name: event.name,
+            dateStart: event.dateStart,
+            dateEnd: event.dateEnd,
+            location: event.locationId,
+            checkInStatus: event.checkInStatus,
+            checkOutStatus: event.checkOutStatus,
+            description: event.description,
+            managerName: event.managerName,
+            token: token,
+          })
+        }
+      >
         <Text style={styles.detailButtonText}>Xem chi tiết</Text>
       </TouchableOpacity>
     </View>
-  );
+  ));
 }
 
 function HomeScreen({ navigation }) {
   const route = useRoute();
   const { token, role } = route.params;
+  const [userInfo, setUserInfo] = useState(null);
+  const [events, setEvents] = useState([]);
+
+  const fetchUserInfo = useCallback(async () => {
+    try {
+      const response = await axios.get('http://10.0.2.2:8080/api/users/myInfo', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUserInfo(response.data.result);
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+    }
+  }, [token]);
+
+  const fetchEvents = useCallback(async () => {
+    try {
+      const response = await axios.get('http://10.0.2.2:8080/api/events/listEvent', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const upcomingEvents = response.data.result.filter(event => new Date(event.dateStart) > new Date());
+      setEvents(upcomingEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    fetchUserInfo();
+    fetchEvents();
+  }, [fetchUserInfo, fetchEvents]);
+
+  // Reload data when navigation focus changes
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchUserInfo();
+      fetchEvents();
+    });
+
+    return unsubscribe;
+  }, [navigation, fetchUserInfo, fetchEvents]);
 
   return (
     <LinearGradient
@@ -45,7 +106,9 @@ function HomeScreen({ navigation }) {
     >
       {/* Header Section */}
       <View style={styles.header}>
-        <Text style={styles.userName}>Nguyễn Quốc Anh</Text>
+      <Text style={styles.userName}>
+        {userInfo ? (userInfo.full_Name ? userInfo.full_Name : 'Chưa cập nhật') : 'Loading...'}
+      </Text>
         <TouchableOpacity style={styles.profileIconContainer}>
           <Image
             source={require('./assets/profile-icon.png')} // Profile icon
@@ -57,32 +120,30 @@ function HomeScreen({ navigation }) {
       {/* Content Section */}
       <View style={styles.content}>
         {/* Left Side: Upcoming Events */}
-        <ScrollView style={styles.upcomingEvents}>
+        <View style={styles.upcomingEventsContainer}>
           <Text style={styles.sectionTitle}>Sự kiện sắp tới</Text>
-          <ListEvents />
-          <ListEvents />
-          <ListEvents />
-        </ScrollView>
+          <ScrollView style={styles.upcomingEvents}>
+            <ListEvents events={events} navigation={navigation} token={token} />
+          </ScrollView>
+        </View>
 
         {/* Right Side: Navigation and Status */}
         <View style={styles.sidebar}>
           <View style={styles.navButtons}>
-            <Button name="Sự kiện" icon={require('./assets/event-icon.png')} handle="EventList" navigation={navigation} />
+            <Button name="Sự kiện" icon={require('./assets/event-icon.png')} handle="EventList" navigation={navigation} token={token} role={role} />
             {role === '[MANAGER]' && (
-              <Button name="Điểm danh" icon={require('./assets/checkin-icon.png')} handle="ChoseEvent" navigation={navigation} />
+              <Button name="Điểm danh" icon={require('./assets/checkin-icon.png')} handle="ChoseEvent" navigation={navigation} token={token} role={role} />
             )}
-            <Button name="Lịch sử" icon={require('./assets/statistics-icon.png')} handle="History" navigation={navigation} />
-            <Button name="Thông báo" icon={require('./assets/notification-icon.png')} handle="Notification" navigation={navigation} />
-            <Button name="Cài đặt" icon={require('./assets/settings-icon.png')} handle="Setting" navigation={navigation} />
+            <Button name="Trạng thái" icon={require('./assets/statistics-icon.png')} handle="History" navigation={navigation} token={token} role={role} />
+            <Button name="Thông báo" icon={require('./assets/notification-icon.png')} handle="Notification" navigation={navigation} token={token} role={role} />
+            <Button name="Cài đặt" icon={require('./assets/settings-icon.png')} handle="Setting" navigation={navigation} token={token} role={role} />
           </View>
 
           {/* Status Section */}
           <View style={styles.statusSection}>
-            <Text style={styles.sectionTitle}>Trạng thái</Text>
-            <Text style={styles.statusText}>Điểm danh vào: 9:00 AM, August 27, 2024</Text>
             <Text style={styles.sectionTitle}>Thống kê</Text>
-            <Text style={styles.statusText}>Đã tham gia sự kiện: 10</Text>
-            <Text style={styles.statusText}>Sự kiện sắp tới: 2</Text>
+            <Text style={styles.statusText}>Đã tham gia sự kiện: {userInfo ? userInfo.participatedEventsCount : 'Loading...'}</Text>
+            <Text style={styles.statusText}>Sự kiện sắp tới: {events.length}</Text>
           </View>
         </View>
       </View>
@@ -138,11 +199,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
     padding: 10,
   },
-  upcomingEvents: {
-    flex: 2,
+  upcomingEventsContainer: {
+    flex: 1,
     padding: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 10,
+  },
+  upcomingEvents: {
+    marginTop: 10,
   },
   eventCard: {
     backgroundColor: '#fff',
@@ -203,7 +267,7 @@ const styles = StyleSheet.create({
   },
   navText: {
     marginTop: 5,
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -214,7 +278,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   statusSection: {
-    height: 285,
+    flex: 1,
     marginLeft: 10,
     backgroundColor: '#fff',
     borderRadius: 10,

@@ -7,42 +7,65 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  RefreshControl,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useRoute, useFocusEffect } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
+import axios from 'axios'; // Import axios
+import { format, isAfter, isBefore, isWithinInterval } from 'date-fns'; // Import date-fns
 
 const EventListScreen = ({ navigation }) => {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
+  const [registeredEvents, setRegisteredEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState('Tất cả');
+  const [filter, setFilter] = useState('Đang diễn ra');
+  const [refreshing, setRefreshing] = useState(false);
+  const route = useRoute();
+  const { token } = route.params;
 
-  const loadMoreEvents = useCallback(() => {
-    const newEvents = Array.from({ length: 10 }, (_, index) => ({
-      id: events.length + index,
-      name: `Event ${events.length + index}`,
-      startDate: getFormattedDate(events.length + index),
-      endDate: getFormattedDate(events.length + index + 1),
-      location: `Địa điểm: ${events.length + index}`,
-      description: `Mô tả cho sự kiện ${events.length + index}`,
-      checkInStatus: Math.random() < 0.5,
-      checkOutStatus: Math.random() < 0.5,
-      managerId: Math.floor(Math.random() * 1000),
-    }));
+  const fetchEvents = useCallback(async () => {
+    try {
+      const response = await axios.get('http://10.0.2.2:8080/api/events/listEvent', {
+        headers: {
+          Authorization: `Bearer ${token}`, // Replace with your actual token
+        },
+      });
+      const sortedEvents = response.data.result.sort((b, a) => new Date(a.dateStart) - new Date(b.dateStart));
+      setEvents(sortedEvents);
+      applyFilter(filter, sortedEvents); // Apply the filter to the fetched events
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  }, [token, filter]);
 
-    setEvents((prevEvents) => [...prevEvents, ...newEvents]);
-    setFilteredEvents((prevEvents) => [...prevEvents, ...newEvents]);
-  }, [events.length]);
+  const fetchRegisteredEvents = useCallback(async () => {
+    try {
+      const response = await axios.get('http://10.0.2.2:8080/api/users/getRegisteredEvents', {
+        headers: {
+          Authorization: `Bearer ${token}`, // Replace with your actual token
+        },
+      });
+      if (response.data.code === 1000) {
+        setRegisteredEvents(response.data.result.eventsRegistered);
+      }
+    } catch (error) {
+      console.error('Error fetching registered events:', error);
+    }
+  }, [token]);
 
   useEffect(() => {
-    loadMoreEvents();
-  }, []);
+    fetchEvents();
+    fetchRegisteredEvents();
+  }, [fetchEvents, fetchRegisteredEvents]);
 
-  const getFormattedDate = (index) => {
-    const now = new Date();
-    const date = new Date(now.setDate(now.getDate() + index));
-    return `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`;
-  };
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+      fetchRegisteredEvents();
+    }, [fetchEvents, fetchRegisteredEvents])
+  );
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -52,46 +75,120 @@ const EventListScreen = ({ navigation }) => {
       );
       setFilteredEvents(filtered);
     } else {
-      setFilteredEvents(events);
+      applyFilter(filter, events);
     }
+  };
+
+  const applyFilter = (filterValue, eventsToFilter) => {
+    let filtered;
+    const now = new Date();
+
+    switch (filterValue) {
+      case 'Đang diễn ra':
+        filtered = eventsToFilter.filter((event) =>
+          isWithinInterval(now, {
+            start: new Date(event.dateStart),
+            end: new Date(event.dateEnd),
+          })
+        );
+        break;
+      case 'Sắp tới':
+        filtered = eventsToFilter.filter((event) => isAfter(new Date(event.dateStart), now));
+        break;
+      case 'Đã qua':
+        filtered = eventsToFilter.filter((event) => isBefore(new Date(event.dateEnd), now));
+        break;
+      case 'Tất cả':
+      default:
+        filtered = eventsToFilter;
+        break;
+    }
+
+    setFilteredEvents(filtered);
   };
 
   const handleFilter = (value) => {
     setFilter(value);
-    // Add your filter logic here if needed
+    applyFilter(value, events);
   };
 
-  const renderEventCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.eventCard}
-      onPress={() =>null
-      }
-    >
-      <View style={styles.eventDetailsContainer}>
-        <View style={styles.eventInfo}>
-          <Text style={styles.eventTitle}>{item.name}</Text>
-          <Text style={styles.eventDate}>Ngày bắt đầu: {item.startDate}</Text>
-        </View>
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchEvents().then(() => setRefreshing(false));
+    fetchRegisteredEvents().then(() => setRefreshing(false));
+  };
 
-        <TouchableOpacity onPress={() => navigation.navigate('EventDetails', {
-                    id: item.id,
-                    name: item.name,
-                    dateStart: item.startDate,
-                    dateEnd: item.endDate,
-                    location: item.location,
-                    checkInStatus: item.checkInStatus,
-                    checkOutStatus: item.checkOutStatus,
-                    description: item.description,
-                    managerId: item.managerId,
-                  })}>
-          <Image
-            source={require('./assets/detail_icon.png')} // Thay đổi với icon của bạn
-            style={styles.detailIcon}
-          />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
+  const isRegistered = (eventId) => {
+    return registeredEvents.some((event) => event.eventId === eventId);
+  };
+
+  const isPastEvent = (dateEnd) => {
+    return isAfter(new Date(), new Date(dateEnd));
+  };
+
+  const renderEventCard = ({ item }) => {
+    const pastEvent = isPastEvent(item.dateEnd);
+    const registered = isRegistered(item.eventId);
+    return (
+      <TouchableOpacity
+        style={[
+          styles.eventCard,
+          registered && styles.registeredEventCard,
+          pastEvent && styles.pastEventCard,
+        ]}
+        onPress={() => {
+          if (!pastEvent) {
+            navigation.navigate('EventDetails', {
+              eventId: item.eventId,
+              name: item.name,
+              dateStart: item.dateStart,
+              dateEnd: item.dateEnd,
+              location: item.location,
+              description: item.description,
+              managerName: item.managerName,
+              isRegistered: registered, // Pass the registration status
+              token: token,
+            });
+          }
+        }}
+        disabled={pastEvent}
+      >
+        <View style={styles.eventDetailsContainer}>
+          <View style={styles.eventInfo}>
+            <Text style={styles.eventTitle}>{item.name}</Text>
+            <Text style={styles.eventDate}>Ngày bắt đầu: {format(new Date(item.dateStart), 'dd/MM/yyyy HH:mm')}</Text>
+            <Text style={styles.eventDate}>Ngày kết thúc: {format(new Date(item.dateEnd), 'dd/MM/yyyy HH:mm')}</Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={() => {
+              if (!pastEvent) {
+                navigation.navigate('EventDetails', {
+                  eventId: item.eventId,
+                  name: item.name,
+                  dateStart: item.dateStart,
+                  dateEnd: item.dateEnd,
+                  location: item.locationId,
+                  checkInStatus: item.checkInStatus,
+                  checkOutStatus: item.checkOutStatus,
+                  description: item.description,
+                  managerName: item.managerName,
+                  isRegistered: registered, // Pass the registration status
+                  token: token,
+                });
+              }
+            }}
+            disabled={pastEvent}
+          >
+            <Image
+              source={require('./assets/detail_icon.png')} // Thay đổi với icon của bạn
+              style={styles.detailIcon}
+            />
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <LinearGradient
@@ -124,6 +221,7 @@ const EventListScreen = ({ navigation }) => {
               <Picker.Item label="Tất cả" value="Tất cả" />
               <Picker.Item label="Sắp tới" value="Sắp tới" />
               <Picker.Item label="Đã qua" value="Đã qua" />
+              <Picker.Item label="Đang diễn ra" value="Đang diễn ra" />
             </Picker>
           </View>
         </View>
@@ -132,8 +230,11 @@ const EventListScreen = ({ navigation }) => {
           data={filteredEvents}
           renderItem={renderEventCard}
           keyExtractor={(item) => item.id.toString()}
-          onEndReached={loadMoreEvents}
+          onEndReached={fetchEvents}
           onEndReachedThreshold={0.5}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
         />
       </View>
     </LinearGradient>
@@ -211,6 +312,9 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%',
   },
+  eventList: {
+    flexGrow: 1,
+  },
   eventCard: {
     backgroundColor: '#fff',
     padding: 20,
@@ -222,10 +326,16 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 5, height: 5 },
     elevation: 5,
   },
+  registeredEventCard: {
+    backgroundColor: '#d4edda', // Green background for registered events
+  },
+  pastEventCard: {
+    backgroundColor: '#f8d7da', // Red background for past events
+  },
   eventTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#1975D7',
+    color: 'black',
   },
   eventDate: {
     fontSize: 14,
@@ -242,7 +352,7 @@ const styles = StyleSheet.create({
   detailIcon: {
     width: 80,
     height: 80,
-    tintColor: '#1975D7',
+    tintColor: 'black',
   },
 });
 
